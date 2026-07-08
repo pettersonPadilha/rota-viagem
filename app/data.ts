@@ -68,8 +68,7 @@ export const rotaInicial: Secao[] = [
       { id: "cba-10", titulo: "Amanotel" },
       {
         id: "cba-13",
-        titulo: "Rommanel",
-        nota: "Shopping Estação",
+        titulo: "Rommanel - Shopping Estação Cuiabá",
         local: "Shopping Estação, Cuiabá, MT",
         lat: -15.590195,
         lng: -56.120546,
