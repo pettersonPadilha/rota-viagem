@@ -9,6 +9,7 @@ export default function Home() {
   const [rota, setRota] = useState<Secao[]>(rotaInicial);
   const [feitos, setFeitos] = useState<Record<string, boolean>>({});
   const [carregado, setCarregado] = useState(false);
+  const [menuId, setMenuId] = useState<string | null>(null);
 
   // Carrega estado salvo no navegador
   useEffect(() => {
@@ -267,107 +268,185 @@ export default function Home() {
                   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
                     busca
                   )}`;
+                  const temCoord =
+                    atividade.lat != null && atividade.lng != null;
+                  const uberUrl =
+                    `https://m.uber.com/ul/?action=setPickup&pickup=my_location` +
+                    `&dropoff[nickname]=${encodeURIComponent(atividade.titulo)}` +
+                    `&dropoff[formatted_address]=${encodeURIComponent(busca)}` +
+                    (temCoord
+                      ? `&dropoff[latitude]=${atividade.lat}&dropoff[longitude]=${atividade.lng}`
+                      : "");
+                  const menuAberto = menuId === atividade.id;
                   return (
                     <li
                       key={atividade.id}
-                      className={`group relative flex items-center gap-3.5 overflow-hidden rounded-xl border px-4 py-3.5 transition-all duration-200 ${
+                      className={`group relative flex flex-col overflow-hidden rounded-xl border px-4 py-3.5 transition-all duration-200 ${
                         feito
                           ? "border-cinza-800 bg-cinza-900/50"
-                          : "border-cinza-700 bg-gradient-to-br from-cinza-800 to-cinza-850 hover:-translate-y-0.5 hover:border-roxo-500/60 hover:shadow-lg hover:shadow-roxo-500/10"
+                          : menuAberto
+                            ? "border-roxo-500/60 bg-gradient-to-br from-cinza-800 to-cinza-850 shadow-lg shadow-roxo-500/10"
+                            : "border-cinza-700 bg-gradient-to-br from-cinza-800 to-cinza-850 hover:-translate-y-0.5 hover:border-roxo-500/60 hover:shadow-lg hover:shadow-roxo-500/10"
                       }`}
                     >
-                      <button
-                        type="button"
-                        onClick={() => alternarFeito(atividade.id)}
-                        aria-label={
-                          feito ? "Desmarcar atividade" : "Marcar como feito"
-                        }
-                        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition-colors ${
-                          feito
-                            ? "border-roxo-400 bg-gradient-to-br from-roxo-500 to-roxo-600 text-white shadow-sm shadow-roxo-500/40"
-                            : "border-cinza-600 bg-transparent hover:border-roxo-400 hover:bg-roxo-500/10"
-                        }`}
-                      >
-                        {feito && (
+                      <div className="flex items-center gap-3.5">
+                        <button
+                          type="button"
+                          onClick={() => alternarFeito(atividade.id)}
+                          aria-label={
+                            feito ? "Desmarcar atividade" : "Marcar como feito"
+                          }
+                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition-colors ${
+                            feito
+                              ? "border-roxo-400 bg-gradient-to-br from-roxo-500 to-roxo-600 text-white shadow-sm shadow-roxo-500/40"
+                              : "border-cinza-600 bg-transparent hover:border-roxo-400 hover:bg-roxo-500/10"
+                          }`}
+                        >
+                          {feito && (
+                            <svg
+                              viewBox="0 0 20 20"
+                              fill="none"
+                              className="h-4 w-4"
+                            >
+                              <path
+                                d="M5 10.5l3.5 3.5L15 6.5"
+                                stroke="currentColor"
+                                strokeWidth="2.2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          )}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setMenuId(menuAberto ? null : atividade.id)
+                          }
+                          aria-expanded={menuAberto}
+                          className="group/map min-w-0 flex-1 text-left"
+                        >
+                          <p className="flex items-center gap-1.5 text-base font-bold tracking-tight">
+                            <span
+                              className={`truncate ${
+                                feito
+                                  ? "text-cinza-500 line-through"
+                                  : "bg-gradient-to-r from-roxo-200 to-roxo-400 bg-clip-text text-transparent"
+                              }`}
+                            >
+                              {atividade.titulo}
+                            </span>
+                            <svg
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                              aria-hidden="true"
+                              className={`h-3.5 w-3.5 shrink-0 transition-all group-hover/map:scale-125 ${
+                                feito
+                                  ? "text-cinza-600"
+                                  : "text-roxo-400/60 group-hover/map:text-roxo-300"
+                              }`}
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M10 2c-3.31 0-6 2.69-6 6 0 4.5 6 10 6 10s6-5.5 6-10c0-3.31-2.69-6-6-6zm0 8.2A2.2 2.2 0 1110 5.8a2.2 2.2 0 010 4.4z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </p>
+                          <p
+                            className={`flex items-center gap-1 text-xs transition-colors ${
+                              feito
+                                ? "text-cinza-600"
+                                : "text-roxo-400/70 group-hover/map:text-roxo-300"
+                            }`}
+                          >
+                            {atividade.nota ? `${atividade.nota} · ` : ""}
+                            <span className="group-hover/map:underline">
+                              Como chegar
+                            </span>
+                            <svg
+                              viewBox="0 0 20 20"
+                              fill="none"
+                              aria-hidden="true"
+                              className={`h-3 w-3 transition-transform ${
+                                menuAberto ? "rotate-180" : ""
+                              }`}
+                            >
+                              <path
+                                d="M6 8l4 4 4-4"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </p>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => excluir(secaoIndex, atividade.id)}
+                          aria-label="Excluir atividade"
+                          className="shrink-0 rounded-lg p-2 text-cinza-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
+                        >
                           <svg
                             viewBox="0 0 20 20"
                             fill="none"
                             className="h-4 w-4"
                           >
                             <path
-                              d="M5 10.5l3.5 3.5L15 6.5"
+                              d="M6 6l8 8M14 6l-8 8"
                               stroke="currentColor"
-                              strokeWidth="2.2"
+                              strokeWidth="2"
                               strokeLinecap="round"
-                              strokeLinejoin="round"
                             />
                           </svg>
-                        )}
-                      </button>
+                        </button>
+                      </div>
 
-                      <a
-                        href={mapsUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title="Ver no Google Maps"
-                        className="group/map min-w-0 flex-1"
-                      >
-                        <p className="flex items-center gap-1.5 text-base font-bold tracking-tight transition-all">
-                          <span
-                            className={`truncate ${
-                              feito
-                                ? "text-cinza-500 line-through"
-                                : "bg-gradient-to-r from-roxo-200 to-roxo-400 bg-clip-text text-transparent"
-                            }`}
+                      {menuAberto && (
+                        <div className="mt-3 grid grid-cols-2 gap-2 border-t border-cinza-700 pt-3">
+                          <a
+                            href={mapsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => setMenuId(null)}
+                            className="flex items-center justify-center gap-2 rounded-lg border border-cinza-700 bg-cinza-900/60 px-3 py-2.5 text-sm font-semibold text-cinza-100 transition-colors hover:border-roxo-500/60 hover:text-roxo-200"
                           >
-                            {atividade.titulo}
-                          </span>
-                          <svg
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            aria-hidden="true"
-                            className={`h-3.5 w-3.5 shrink-0 transition-all group-hover/map:scale-125 ${
-                              feito
-                                ? "text-cinza-600"
-                                : "text-roxo-400/60 group-hover/map:text-roxo-300"
-                            }`}
+                            <svg
+                              viewBox="0 0 20 20"
+                              fill="#ea4335"
+                              className="h-4 w-4"
+                              aria-hidden="true"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M10 2c-3.31 0-6 2.69-6 6 0 4.5 6 10 6 10s6-5.5 6-10c0-3.31-2.69-6-6-6zm0 8.2A2.2 2.2 0 1110 5.8a2.2 2.2 0 010 4.4z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                            Google Maps
+                          </a>
+                          <a
+                            href={uberUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => setMenuId(null)}
+                            className="flex items-center justify-center gap-2 rounded-lg bg-white px-3 py-2.5 text-sm font-bold text-black transition-transform hover:scale-[1.02] active:scale-95"
                           >
-                            <path
-                              fillRule="evenodd"
-                              d="M10 2c-3.31 0-6 2.69-6 6 0 4.5 6 10 6 10s6-5.5 6-10c0-3.31-2.69-6-6-6zm0 8.2A2.2 2.2 0 1110 5.8a2.2 2.2 0 010 4.4z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </p>
-                        <p
-                          className={`text-xs transition-colors ${
-                            feito
-                              ? "text-cinza-600"
-                              : "text-roxo-400/70 group-hover/map:text-roxo-300"
-                          }`}
-                        >
-                          {atividade.nota ? `${atividade.nota} · ` : ""}
-                          <span className="group-hover/map:underline">
-                            Ver no mapa
-                          </span>
-                        </p>
-                      </a>
-
-                      <button
-                        type="button"
-                        onClick={() => excluir(secaoIndex, atividade.id)}
-                        aria-label="Excluir atividade"
-                        className="shrink-0 rounded-lg p-2 text-cinza-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
-                      >
-                        <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4">
-                          <path
-                            d="M6 6l8 8M14 6l-8 8"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                      </button>
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="currentColor"
+                              className="h-4 w-4"
+                              aria-hidden="true"
+                            >
+                              <path d="M3 3h4v10a5 5 0 0010 0V3h4v10a9 9 0 01-18 0V3z" />
+                            </svg>
+                            Uber
+                          </a>
+                        </div>
+                      )}
                     </li>
                   );
                 })}
