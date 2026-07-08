@@ -1,15 +1,27 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { rotaInicial, type Secao } from "./data";
+import { rotaInicial } from "./data";
 
 const STORAGE_KEY = "rota-viagem-v1";
 
 export default function Home() {
-  const [rota, setRota] = useState<Secao[]>(rotaInicial);
   const [feitos, setFeitos] = useState<Record<string, boolean>>({});
+  const [excluidos, setExcluidos] = useState<string[]>([]);
   const [carregado, setCarregado] = useState(false);
   const [menuId, setMenuId] = useState<string | null>(null);
+
+  // A lista é SEMPRE montada a partir do código (rotaInicial), removendo
+  // apenas os itens excluídos. Assim, correções de lugar/coordenada sempre
+  // aparecem — no navegador guardamos só o que foi marcado/excluído.
+  const rota = useMemo(
+    () =>
+      rotaInicial.map((secao) => ({
+        ...secao,
+        atividades: secao.atividades.filter((a) => !excluidos.includes(a.id)),
+      })),
+    [excluidos]
+  );
 
   // Carrega estado salvo no navegador
   useEffect(() => {
@@ -17,11 +29,11 @@ export default function Home() {
       const salvo = localStorage.getItem(STORAGE_KEY);
       if (salvo) {
         const parsed = JSON.parse(salvo) as {
-          rota?: Secao[];
           feitos?: Record<string, boolean>;
+          excluidos?: string[];
         };
-        if (parsed.rota) setRota(parsed.rota);
         if (parsed.feitos) setFeitos(parsed.feitos);
+        if (parsed.excluidos) setExcluidos(parsed.excluidos);
       }
     } catch {
       // ignora estado corrompido
@@ -34,20 +46,14 @@ export default function Home() {
   // Salva sempre que muda
   useEffect(() => {
     if (!carregado) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ rota, feitos }));
-  }, [rota, feitos, carregado]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ feitos, excluidos }));
+  }, [feitos, excluidos, carregado]);
 
   const alternarFeito = (id: string) =>
     setFeitos((f) => ({ ...f, [id]: !f[id] }));
 
-  const excluir = (secaoIndex: number, id: string) => {
-    setRota((r) =>
-      r.map((secao, i) =>
-        i === secaoIndex
-          ? { ...secao, atividades: secao.atividades.filter((a) => a.id !== id) }
-          : secao
-      )
-    );
+  const excluir = (id: string) => {
+    setExcluidos((e) => (e.includes(id) ? e : [...e, id]));
     setFeitos((f) => {
       const novo = { ...f };
       delete novo[id];
@@ -243,7 +249,7 @@ export default function Home() {
       </header>
 
       <div className="space-y-8">
-        {rota.map((secao, secaoIndex) => (
+        {rota.map((secao) => (
           <section key={secao.cidade}>
             <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-cinza-700 pb-2">
               <h2 className="text-xl font-semibold text-cinza-50">
@@ -386,7 +392,7 @@ export default function Home() {
 
                         <button
                           type="button"
-                          onClick={() => excluir(secaoIndex, atividade.id)}
+                          onClick={() => excluir(atividade.id)}
                           aria-label="Excluir atividade"
                           className="shrink-0 rounded-lg p-2 text-cinza-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
                         >
