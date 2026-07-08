@@ -5,8 +5,20 @@ import { rotaInicial } from "./data";
 
 const STORAGE_KEY = "rota-viagem-v1";
 
+// "08/07 às 14:30" a partir de uma data ISO (null se não houver/for inválida)
+function formatarQuando(iso?: string): string | null {
+  if (typeof iso !== "string") return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${p(d.getDate())}/${p(d.getMonth() + 1)} às ${p(d.getHours())}:${p(
+    d.getMinutes()
+  )}`;
+}
+
 export default function Home() {
-  const [feitos, setFeitos] = useState<Record<string, boolean>>({});
+  // feitos: id -> data/hora ISO em que foi marcado
+  const [feitos, setFeitos] = useState<Record<string, string>>({});
   const [excluidos, setExcluidos] = useState<string[]>([]);
   const [carregado, setCarregado] = useState(false);
   const [menuId, setMenuId] = useState<string | null>(null);
@@ -29,7 +41,7 @@ export default function Home() {
       const salvo = localStorage.getItem(STORAGE_KEY);
       if (salvo) {
         const parsed = JSON.parse(salvo) as {
-          feitos?: Record<string, boolean>;
+          feitos?: Record<string, string>;
           excluidos?: string[];
         };
         if (parsed.feitos) setFeitos(parsed.feitos);
@@ -50,7 +62,12 @@ export default function Home() {
   }, [feitos, excluidos, carregado]);
 
   const alternarFeito = (id: string) =>
-    setFeitos((f) => ({ ...f, [id]: !f[id] }));
+    setFeitos((f) => {
+      const novo = { ...f };
+      if (novo[id]) delete novo[id];
+      else novo[id] = new Date().toISOString();
+      return novo;
+    });
 
   const excluir = (id: string) => {
     setExcluidos((e) => (e.includes(id) ? e : [...e, id]));
@@ -268,6 +285,7 @@ export default function Home() {
               <ul className="space-y-2">
                 {secao.atividades.map((atividade) => {
                   const feito = !!feitos[atividade.id];
+                  const quandoTxt = formatarQuando(feitos[atividade.id]);
                   const busca =
                     atividade.local ??
                     `${atividade.titulo}, ${secao.cidade}, MT`;
@@ -360,34 +378,50 @@ export default function Home() {
                               />
                             </svg>
                           </p>
-                          <p
-                            className={`flex items-center gap-1 text-xs transition-colors ${
-                              feito
-                                ? "text-cinza-600"
-                                : "text-roxo-400/70 group-hover/map:text-roxo-300"
-                            }`}
-                          >
-                            {atividade.nota ? `${atividade.nota} · ` : ""}
-                            <span className="group-hover/map:underline">
-                              Como chegar
-                            </span>
-                            <svg
-                              viewBox="0 0 20 20"
-                              fill="none"
-                              aria-hidden="true"
-                              className={`h-3 w-3 transition-transform ${
-                                menuAberto ? "rotate-180" : ""
-                              }`}
-                            >
-                              <path
-                                d="M6 8l4 4 4-4"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </p>
+                          {feito ? (
+                            <p className="flex items-center gap-1 text-xs text-emerald-400/80">
+                              <svg
+                                viewBox="0 0 20 20"
+                                fill="none"
+                                aria-hidden="true"
+                                className="h-3 w-3 shrink-0"
+                              >
+                                <path
+                                  d="M5 10.5l3.5 3.5L15 6.5"
+                                  stroke="currentColor"
+                                  strokeWidth="2.4"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                              {quandoTxt
+                                ? `Concluído em ${quandoTxt}`
+                                : "Concluído"}
+                            </p>
+                          ) : (
+                            <p className="flex items-center gap-1 text-xs text-roxo-400/70 transition-colors group-hover/map:text-roxo-300">
+                              {atividade.nota ? `${atividade.nota} · ` : ""}
+                              <span className="group-hover/map:underline">
+                                Como chegar
+                              </span>
+                              <svg
+                                viewBox="0 0 20 20"
+                                fill="none"
+                                aria-hidden="true"
+                                className={`h-3 w-3 transition-transform ${
+                                  menuAberto ? "rotate-180" : ""
+                                }`}
+                              >
+                                <path
+                                  d="M6 8l4 4 4-4"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </p>
+                          )}
                         </button>
 
                         <button
