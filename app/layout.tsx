@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import ServiceWorkerRegister from "./sw-register";
+import PullToRefresh from "./pull-to-refresh";
 
 export const metadata: Metadata = {
   title: "Rota da Viagem — Cuiabá & Chapada",
@@ -35,6 +36,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className="min-h-screen antialiased">
+        <PullToRefresh />
         {children}
         <ServiceWorkerRegister />
       </body>

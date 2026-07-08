@@ -52,3 +52,18 @@ body::before {
     animation: none;
   }
 }
+
+/* evita o "bounce" nativo atrapalhar o puxar-pra-atualizar */
+html,
+body {
+  overscroll-behavior-y: contain;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.ptr-spin {
+  animation: spin 0.8s linear infinite;
+}
