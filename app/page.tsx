@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { rotaInicial } from "./data";
+import { rotaInicial, type Atividade } from "./data";
+import AddPlaceModal from "./add-place-modal";
+import AddFab from "./add-fab";
 
 const STORAGE_KEY = "rota-viagem-v1";
 
@@ -16,23 +18,34 @@ function formatarQuando(iso?: string): string | null {
   )}`;
 }
 
+type ItemAdicionado = { id: string; cidade: string; titulo: string };
+
 export default function Home() {
   // feitos: id -> data/hora ISO em que foi marcado
   const [feitos, setFeitos] = useState<Record<string, string>>({});
   const [excluidos, setExcluidos] = useState<string[]>([]);
+  const [adicionados, setAdicionados] = useState<ItemAdicionado[]>([]);
   const [carregado, setCarregado] = useState(false);
   const [menuId, setMenuId] = useState<string | null>(null);
+  const [modalAberto, setModalAberto] = useState(false);
 
-  // A lista é SEMPRE montada a partir do código (rotaInicial), removendo
-  // apenas os itens excluídos. Assim, correções de lugar/coordenada sempre
-  // aparecem — no navegador guardamos só o que foi marcado/excluído.
+  const cidades = rotaInicial.map((s) => s.cidade);
+
+  // A lista é SEMPRE montada a partir do código (rotaInicial), removendo os
+  // excluídos e acrescentando os que você adicionou. No navegador guardamos
+  // só o que foi marcado / excluído / adicionado.
   const rota = useMemo(
     () =>
       rotaInicial.map((secao) => ({
         ...secao,
-        atividades: secao.atividades.filter((a) => !excluidos.includes(a.id)),
+        atividades: [
+          ...secao.atividades.filter((a) => !excluidos.includes(a.id)),
+          ...adicionados
+            .filter((a) => a.cidade === secao.cidade)
+            .map((a): Atividade => ({ id: a.id, titulo: a.titulo })),
+        ],
       })),
-    [excluidos]
+    [excluidos, adicionados]
   );
 
   // Carrega estado salvo no navegador
@@ -43,9 +56,11 @@ export default function Home() {
         const parsed = JSON.parse(salvo) as {
           feitos?: Record<string, string>;
           excluidos?: string[];
+          adicionados?: ItemAdicionado[];
         };
         if (parsed.feitos) setFeitos(parsed.feitos);
         if (parsed.excluidos) setExcluidos(parsed.excluidos);
+        if (parsed.adicionados) setAdicionados(parsed.adicionados);
       }
     } catch {
       // ignora estado corrompido
@@ -58,8 +73,11 @@ export default function Home() {
   // Salva sempre que muda
   useEffect(() => {
     if (!carregado) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ feitos, excluidos }));
-  }, [feitos, excluidos, carregado]);
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ feitos, excluidos, adicionados })
+    );
+  }, [feitos, excluidos, adicionados, carregado]);
 
   const alternarFeito = (id: string) =>
     setFeitos((f) => {
@@ -70,12 +88,25 @@ export default function Home() {
     });
 
   const excluir = (id: string) => {
-    setExcluidos((e) => (e.includes(id) ? e : [...e, id]));
+    // itens adicionados sao removidos de vez; os do codigo entram em "excluidos"
+    if (id.startsWith("add-")) {
+      setAdicionados((a) => a.filter((x) => x.id !== id));
+    } else {
+      setExcluidos((e) => (e.includes(id) ? e : [...e, id]));
+    }
     setFeitos((f) => {
       const novo = { ...f };
       delete novo[id];
       return novo;
     });
+  };
+
+  const adicionar = (cidade: string, titulo: string) => {
+    const nome = titulo.trim();
+    if (!nome) return;
+    const id = `add-${Date.now()}`;
+    setAdicionados((a) => [...a, { id, cidade, titulo: nome }]);
+    setModalAberto(false);
   };
 
   const { total, concluidos } = useMemo(() => {
@@ -112,10 +143,13 @@ export default function Home() {
     return (
       <main className="relative z-10 mx-auto max-w-2xl px-4 py-10 sm:py-14">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-roxo-200 sm:text-4xl">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-roxo-400/80">
+            Dias 13–16 · Mato Grosso
+          </p>
+          <h1 className="font-display mt-1.5 bg-gradient-to-br from-roxo-100 via-roxo-200 to-roxo-400 bg-clip-text text-4xl font-extrabold leading-[1.05] text-transparent sm:text-5xl">
             Rota da Viagem
           </h1>
-          <p className="mt-1 text-sm text-cinza-400">
+          <p className="mt-2 text-sm text-cinza-400">
             Chapada dos Guimarães &amp; Cuiabá
           </p>
 
@@ -173,11 +207,14 @@ export default function Home() {
 
   return (
     <main className="relative z-10 mx-auto max-w-2xl px-4 py-10 sm:py-14">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-roxo-200 sm:text-4xl">
+      <header className="reveal mb-8">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-roxo-400/80">
+          Dias 13–16 · Mato Grosso
+        </p>
+        <h1 className="font-display mt-1.5 bg-gradient-to-br from-roxo-100 via-roxo-200 to-roxo-400 bg-clip-text text-4xl font-extrabold leading-[1.05] text-transparent sm:text-5xl">
           Rota da Viagem
         </h1>
-        <p className="mt-1 text-sm text-cinza-400">
+        <p className="mt-2 text-sm text-cinza-400">
           Chapada dos Guimarães &amp; Cuiabá
         </p>
 
@@ -221,7 +258,7 @@ export default function Home() {
                 </defs>
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-xl font-bold text-cinza-50 tabular-nums">
+                <span className="font-display text-2xl font-extrabold text-cinza-50 tabular-nums">
                   {progresso}%
                 </span>
               </div>
@@ -231,7 +268,7 @@ export default function Home() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <span className="text-lg leading-none">{rank.emoji}</span>
-                <span className="truncate text-base font-semibold text-roxo-200">
+                <span className="font-display truncate text-lg font-bold text-roxo-200">
                   {rank.nome}
                 </span>
               </div>
@@ -266,10 +303,14 @@ export default function Home() {
       </header>
 
       <div className="space-y-8">
-        {rota.map((secao) => (
-          <section key={secao.cidade}>
+        {rota.map((secao, i) => (
+          <section
+            key={secao.cidade}
+            className="reveal"
+            style={{ animationDelay: `${0.1 * (i + 1)}s` }}
+          >
             <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-cinza-700 pb-2">
-              <h2 className="text-xl font-semibold text-cinza-50">
+              <h2 className="font-display text-2xl font-bold text-cinza-50">
                 {secao.cidade}
               </h2>
               <span className="shrink-0 rounded-full border border-roxo-500/40 bg-roxo-500/15 px-3 py-1 text-xs font-medium text-roxo-300">
@@ -320,27 +361,31 @@ export default function Home() {
                           aria-label={
                             feito ? "Desmarcar atividade" : "Marcar como feito"
                           }
-                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition-colors ${
-                            feito
-                              ? "border-roxo-400 bg-gradient-to-br from-roxo-500 to-roxo-600 text-white shadow-sm shadow-roxo-500/40"
-                              : "border-cinza-600 bg-transparent hover:border-roxo-400 hover:bg-roxo-500/10"
-                          }`}
+                          className="group/check -my-2.5 -ml-2.5 flex h-11 w-11 shrink-0 items-center justify-center"
                         >
-                          {feito && (
-                            <svg
-                              viewBox="0 0 20 20"
-                              fill="none"
-                              className="h-4 w-4"
-                            >
-                              <path
-                                d="M5 10.5l3.5 3.5L15 6.5"
-                                stroke="currentColor"
-                                strokeWidth="2.2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          )}
+                          <span
+                            className={`flex h-6 w-6 items-center justify-center rounded-md border transition-colors ${
+                              feito
+                                ? "border-roxo-400 bg-gradient-to-br from-roxo-500 to-roxo-600 text-white shadow-sm shadow-roxo-500/40"
+                                : "border-cinza-600 bg-transparent group-hover/check:border-roxo-400 group-hover/check:bg-roxo-500/10"
+                            }`}
+                          >
+                            {feito && (
+                              <svg
+                                viewBox="0 0 20 20"
+                                fill="none"
+                                className="h-4 w-4"
+                              >
+                                <path
+                                  d="M5 10.5l3.5 3.5L15 6.5"
+                                  stroke="currentColor"
+                                  strokeWidth="2.2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            )}
+                          </span>
                         </button>
 
                         <button
@@ -428,7 +473,7 @@ export default function Home() {
                           type="button"
                           onClick={() => excluir(atividade.id)}
                           aria-label="Excluir atividade"
-                          className="shrink-0 rounded-lg p-2 text-cinza-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
+                          className="-my-2.5 -mr-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-cinza-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
                         >
                           <svg
                             viewBox="0 0 20 20"
@@ -495,6 +540,17 @@ export default function Home() {
           </section>
         ))}
       </div>
+
+      {/* Botão flutuante de adicionar (arrastável) */}
+      <AddFab onClick={() => setModalAberto(true)} />
+
+      {modalAberto && (
+        <AddPlaceModal
+          cidades={cidades}
+          onAdd={adicionar}
+          onClose={() => setModalAberto(false)}
+        />
+      )}
     </main>
   );
 }

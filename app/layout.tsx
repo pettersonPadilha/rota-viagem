@@ -1,7 +1,15 @@
 import type { Metadata, Viewport } from "next";
+import { Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 import ServiceWorkerRegister from "./sw-register";
 import PullToRefresh from "./pull-to-refresh";
+
+const display = Bricolage_Grotesque({
+  subsets: ["latin"],
+  weight: ["600", "700", "800"],
+  variable: "--font-display",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Rota da Viagem — Cuiabá & Chapada",
@@ -34,7 +42,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" className={display.variable}>
       <body className="min-h-screen antialiased">
         <PullToRefresh />
         {children}
