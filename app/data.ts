@@ -11,14 +11,16 @@ export type Atividade = {
 
 export type Secao = {
   cidade: string;
-  datas: string;
+  dias: number[];
+  mes: string;
   atividades: Atividade[];
 };
 
 export const rotaInicial: Secao[] = [
   {
     cidade: "Cuiabá",
-    datas: "Dias 13, 14 e 16",
+    dias: [13, 14, 16],
+    mes: "Jul",
     atividades: [
       { id: "cba-01", titulo: "Sinuelo e Vilho" },
       {
@@ -89,7 +91,8 @@ export const rotaInicial: Secao[] = [
   },
   {
     cidade: "Chapada dos Guimarães",
-    datas: "Dia 15",
+    dias: [15],
+    mes: "Jul",
     atividades: [
       {
         id: "cha-01",

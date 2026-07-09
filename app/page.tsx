@@ -132,7 +132,19 @@ export default function Home() {
               ? { nome: "Explorador", emoji: "🎒" }
               : { nome: "Bora começar", emoji: "🚗" };
 
-  const medalhas = [25, 50, 75, 100];
+  // Trilha de conquistas (marcos com emoji do rank correspondente)
+  const marcos = [
+    { pct: 25, emoji: "🌄" },
+    { pct: 50, emoji: "🧭" },
+    { pct: 75, emoji: "🔥" },
+    { pct: 100, emoji: "🏆" },
+  ];
+  const proximo = marcos.find((m) => progresso < m.pct)?.pct;
+  const faltam = proximo
+    ? Math.max(0, Math.ceil((total * proximo) / 100) - concluidos)
+    : 0;
+  // fração preenchida da trilha (do 1º ao último marco: 25%→100%)
+  const trilha = Math.min(Math.max((progresso - 25) / 75, 0), 1);
 
   // Geometria do anel de progresso
   const raio = 34;
@@ -158,14 +170,15 @@ export default function Home() {
             <div className="flex items-center gap-5">
               <div className="skeleton h-[88px] w-[88px] shrink-0 rounded-full" />
               <div className="flex-1 space-y-3">
-                <div className="skeleton h-4 w-40 rounded-md" />
+                <div className="skeleton h-5 w-40 rounded-md" />
                 <div className="skeleton h-3 w-52 rounded-md" />
-                <div className="flex gap-2 pt-1">
-                  {[0, 1, 2, 3].map((i) => (
-                    <div key={i} className="skeleton h-8 w-8 rounded-full" />
-                  ))}
-                </div>
+                <div className="skeleton h-3 w-44 rounded-md" />
               </div>
+            </div>
+            <div className="mt-6 flex justify-between">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="skeleton h-11 w-11 rounded-full" />
+              ))}
             </div>
           </div>
         </header>
@@ -278,25 +291,55 @@ export default function Home() {
                 </span>{" "}
                 de {total} lugares conquistados
               </p>
+              {progresso === 100 ? (
+                <p className="mt-1.5 text-sm font-semibold text-emerald-400/90">
+                  Tudo conquistado! 🎉
+                </p>
+              ) : (
+                <p className="mt-1.5 text-sm text-roxo-300/90">
+                  {faltam === 1
+                    ? "Falta 1 lugar pra próxima conquista"
+                    : `Faltam ${faltam} lugares pra próxima conquista`}
+                </p>
+              )}
+            </div>
+          </div>
 
-              <div className="mt-3 flex items-center gap-2">
-                {medalhas.map((marco) => {
-                  const desbloqueada = progresso >= marco;
-                  return (
+          {/* Trilha de conquistas */}
+          <div className="relative mt-6">
+            <div className="absolute left-[1.375rem] right-[1.375rem] top-[1.375rem] h-1 -translate-y-1/2 rounded-full bg-cinza-700" />
+            <div
+              className="absolute left-[1.375rem] top-[1.375rem] h-1 -translate-y-1/2 rounded-full bg-gradient-to-r from-roxo-600 to-roxo-400 transition-all duration-500"
+              style={{ width: `calc((100% - 2.75rem) * ${trilha})` }}
+            />
+            <div className="relative flex justify-between">
+              {marcos.map((m) => {
+                const on = progresso >= m.pct;
+                return (
+                  <div
+                    key={m.pct}
+                    className="flex flex-col items-center gap-1.5"
+                  >
                     <div
-                      key={marco}
-                      title={`${marco}%`}
-                      className={`flex h-8 w-8 items-center justify-center rounded-full border text-xs font-bold transition-all duration-300 ${
-                        desbloqueada
-                          ? "border-roxo-400 bg-gradient-to-br from-roxo-500 to-roxo-600 text-white shadow-sm shadow-roxo-500/40"
-                          : "border-cinza-700 bg-cinza-800 text-cinza-600"
+                      title={`${m.pct}%`}
+                      className={`flex h-11 w-11 items-center justify-center rounded-full border text-lg transition-all duration-300 ${
+                        on
+                          ? "border-roxo-400 bg-gradient-to-br from-roxo-500 to-roxo-600 shadow-md shadow-roxo-500/40"
+                          : "border-cinza-700 bg-cinza-850 opacity-50 grayscale"
                       }`}
                     >
-                      {desbloqueada ? "★" : marco}
+                      {m.emoji}
                     </div>
-                  );
-                })}
-              </div>
+                    <span
+                      className={`text-[11px] font-semibold tabular-nums ${
+                        on ? "text-roxo-300" : "text-cinza-500"
+                      }`}
+                    >
+                      {m.pct}%
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -309,12 +352,46 @@ export default function Home() {
             className="reveal"
             style={{ animationDelay: `${0.1 * (i + 1)}s` }}
           >
-            <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-cinza-700 pb-2">
+            <div className="mb-3 flex items-center justify-between gap-3 border-b border-cinza-700 pb-2">
               <h2 className="font-display text-2xl font-bold text-cinza-50">
                 {secao.cidade}
               </h2>
-              <span className="shrink-0 rounded-full border border-roxo-500/40 bg-roxo-500/15 px-3 py-1 text-xs font-medium text-roxo-300">
-                {secao.datas}
+              <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-roxo-500/40 bg-roxo-500/15 py-1 pl-2.5 pr-3 text-roxo-300">
+                <svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  aria-hidden="true"
+                  className="h-3.5 w-3.5"
+                >
+                  <rect
+                    x="3"
+                    y="4.5"
+                    width="14"
+                    height="12"
+                    rx="2.5"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                  />
+                  <path
+                    d="M3 8h14M7 3v3M13 3v3"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <span className="flex items-center gap-1 text-xs font-semibold tabular-nums">
+                  {secao.dias.map((d, idx) => (
+                    <span key={d} className="flex items-center gap-1">
+                      {idx > 0 && (
+                        <span className="text-roxo-400/50">·</span>
+                      )}
+                      {d}
+                    </span>
+                  ))}
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-roxo-400/90">
+                  {secao.mes}
+                </span>
               </span>
             </div>
 
