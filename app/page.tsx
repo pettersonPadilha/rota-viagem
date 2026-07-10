@@ -2,8 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { rotaInicial, CATEGORIAS, type Atividade } from "./data";
-import AddPlaceModal from "./add-place-modal";
-import AddFab from "./add-fab";
 
 const STORAGE_KEY = "rota-viagem-v1";
 
@@ -27,9 +25,6 @@ export default function Home() {
   const [adicionados, setAdicionados] = useState<ItemAdicionado[]>([]);
   const [carregado, setCarregado] = useState(false);
   const [menuId, setMenuId] = useState<string | null>(null);
-  const [modalAberto, setModalAberto] = useState(false);
-
-  const cidades = rotaInicial.map((s) => s.cidade);
 
   // A lista é SEMPRE montada a partir do código (rotaInicial), removendo os
   // excluídos e acrescentando os que você adicionou. No navegador guardamos
@@ -105,14 +100,6 @@ export default function Home() {
       delete novo[id];
       return novo;
     });
-  };
-
-  const adicionar = (cidade: string, titulo: string) => {
-    const nome = titulo.trim();
-    if (!nome) return;
-    const id = `add-${Date.now()}`;
-    setAdicionados((a) => [...a, { id, cidade, titulo: nome }]);
-    setModalAberto(false);
   };
 
   const { total, concluidos } = useMemo(() => {
@@ -656,16 +643,6 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Botão flutuante de adicionar (arrastável) */}
-      <AddFab onClick={() => setModalAberto(true)} />
-
-      {modalAberto && (
-        <AddPlaceModal
-          cidades={cidades}
-          onAdd={adicionar}
-          onClose={() => setModalAberto(false)}
-        />
-      )}
     </main>
   );
 }
