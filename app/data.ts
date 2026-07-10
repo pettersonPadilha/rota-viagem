@@ -90,6 +90,13 @@ export const rotaInicial: Secao[] = [
         lng: -56.120546,
       },
       {
+        id: "cba-17",
+        titulo: "Shopping 3 Américas",
+        categoria: "compras",
+        lat: -15.611995,
+        lng: -56.073288,
+      },
+      {
         id: "cba-09",
         titulo: "Clube 40 Graus",
         categoria: "diversao",
