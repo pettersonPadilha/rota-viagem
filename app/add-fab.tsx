@@ -91,7 +91,7 @@ export default function AddFab({ onClick }: { onClick: () => void }) {
       onTouchStart={(e) => e.stopPropagation()}
       onTouchMove={(e) => e.stopPropagation()}
       style={{ left: pos.x, top: pos.y, touchAction: "none" }}
-      className="fixed z-40 flex h-14 w-14 cursor-grab touch-none items-center justify-center rounded-full bg-gradient-to-br from-roxo-500 to-roxo-600 text-white shadow-lg shadow-roxo-600/40 transition-[transform,box-shadow] active:scale-95 active:cursor-grabbing"
+      className="fixed z-40 flex h-14 w-14 cursor-grab touch-none items-center justify-center rounded-full border border-roxo-500/40 bg-gradient-to-br from-[#2a1245] to-[#120a1f] text-roxo-200 shadow-lg shadow-black/50 transition-[transform,box-shadow] active:scale-95 active:cursor-grabbing"
     >
       <svg viewBox="0 0 24 24" fill="none" className="h-7 w-7">
         <path

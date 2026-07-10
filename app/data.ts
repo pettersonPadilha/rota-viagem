@@ -67,7 +67,18 @@ export const rotaInicial: Secao[] = [
         lat: -15.633329,
         lng: -56.088626,
       },
-      { id: "cba-10", titulo: "Amanotel" },
+      {
+        id: "cba-14",
+        titulo: "Praça da República",
+        lat: -15.597894,
+        lng: -56.095666,
+      },
+      {
+        id: "cba-15",
+        titulo: "Aquário Municipal Justino Malheiros",
+        lat: -15.615032,
+        lng: -56.108212,
+      },
       {
         id: "cba-13",
         titulo: "Rommanel - Shopping Estação Cuiabá",

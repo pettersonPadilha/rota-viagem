@@ -11,6 +11,27 @@ body {
   color: #e9e8ec;
 }
 
+/* barra de rolagem customizada (roxa, fininha) */
+/* barra de rolagem quase da cor do fundo, só um tom acima pra dar pra ver */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #1c1a24 transparent;
+}
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #1c1a24;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #26242e;
+}
+
 /* fonte display para títulos */
 .font-display {
   font-family: var(--font-display), system-ui, sans-serif;

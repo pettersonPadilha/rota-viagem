@@ -166,7 +166,7 @@ export default function Home() {
           </p>
 
           {/* skeleton do card de progresso */}
-          <div className="mt-6 rounded-2xl border border-cinza-700 bg-cinza-850 p-5">
+          <div className="mt-6 rounded-2xl border border-cinza-800 bg-gradient-to-b from-cinza-950 to-[#0b0a0f] p-5 shadow-md shadow-black/40">
             <div className="flex items-center gap-5">
               <div className="skeleton h-[88px] w-[88px] shrink-0 rounded-full" />
               <div className="flex-1 space-y-3">
@@ -197,7 +197,7 @@ export default function Home() {
                 {Array.from({ length: sec.linhas }).map((_, i) => (
                   <li
                     key={i}
-                    className="flex items-center gap-3.5 rounded-xl border border-cinza-700 bg-gradient-to-br from-cinza-800 to-cinza-850 px-4 py-3.5"
+                    className="flex items-center gap-3.5 rounded-xl border border-cinza-800 bg-gradient-to-b from-cinza-950 to-[#0b0a0f] px-4 py-3.5"
                   >
                     <div className="skeleton h-6 w-6 shrink-0 rounded-md" />
                     <div className="min-w-0 flex-1 space-y-2">
@@ -231,7 +231,7 @@ export default function Home() {
           Chapada dos Guimarães &amp; Cuiabá
         </p>
 
-        <div className="relative mt-6 overflow-hidden rounded-2xl border border-roxo-500/30 bg-gradient-to-br from-cinza-850 to-cinza-900 p-5">
+        <div className="relative mt-6 overflow-hidden rounded-2xl border border-roxo-500/25 bg-gradient-to-b from-cinza-950 to-[#0b0a0f] p-5 shadow-md shadow-black/40">
           {/* brilho roxo de fundo */}
           <div
             className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-roxo-600/20 blur-3xl transition-opacity duration-500"
@@ -425,10 +425,10 @@ export default function Home() {
                       key={atividade.id}
                       className={`group relative flex flex-col overflow-hidden rounded-xl border px-4 py-3.5 transition-all duration-200 ${
                         feito
-                          ? "border-cinza-800 bg-cinza-900/50"
+                          ? "border-cinza-850 bg-cinza-950/60"
                           : menuAberto
-                            ? "border-roxo-500/60 bg-gradient-to-br from-cinza-800 to-cinza-850 shadow-lg shadow-roxo-500/10"
-                            : "border-cinza-700 bg-gradient-to-br from-cinza-800 to-cinza-850 hover:-translate-y-0.5 hover:border-roxo-500/60 hover:shadow-lg hover:shadow-roxo-500/10"
+                            ? "border-roxo-500/50 bg-gradient-to-b from-cinza-950 to-[#0b0a0f] shadow-lg shadow-roxo-500/10"
+                            : "border-cinza-800 bg-gradient-to-b from-cinza-950 to-[#0b0a0f] shadow-md shadow-black/40 hover:-translate-y-0.5 hover:border-roxo-500/50 hover:shadow-lg hover:shadow-roxo-500/10"
                       }`}
                     >
                       <div className="flex items-center gap-3.5">
