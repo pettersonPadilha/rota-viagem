@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { rotaInicial, type Atividade } from "./data";
+import { rotaInicial, CATEGORIAS, type Atividade } from "./data";
 import AddPlaceModal from "./add-place-modal";
 import AddFab from "./add-fab";
 
@@ -42,7 +42,13 @@ export default function Home() {
           ...secao.atividades.filter((a) => !excluidos.includes(a.id)),
           ...adicionados
             .filter((a) => a.cidade === secao.cidade)
-            .map((a): Atividade => ({ id: a.id, titulo: a.titulo })),
+            .map(
+              (a): Atividade => ({
+                id: a.id,
+                titulo: a.titulo,
+                categoria: "outro",
+              })
+            ),
         ],
       })),
     [excluidos, adicionados]
@@ -400,9 +406,38 @@ export default function Home() {
                 Nenhuma atividade nesta cidade.
               </p>
             ) : (
-              <ul className="space-y-2">
-                {secao.atividades.map((atividade) => {
-                  const feito = !!feitos[atividade.id];
+              <div>
+                {Object.keys(CATEGORIAS)
+                  .map((catKey) => ({
+                    catKey,
+                    itens: secao.atividades.filter(
+                      (a) => (a.categoria ?? "outro") === catKey
+                    ),
+                  }))
+                  .filter((g) => g.itens.length > 0)
+                  .map((g, gi) => (
+                    <div
+                      key={g.catKey}
+                      className={
+                        gi > 0
+                          ? "mt-5 border-t border-dashed border-cinza-700 pt-5"
+                          : ""
+                      }
+                    >
+                      <div className="mb-2.5 flex items-center gap-2 px-1">
+                        <span className="text-lg leading-none">
+                          {CATEGORIAS[g.catKey].emoji}
+                        </span>
+                        <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-cinza-400">
+                          {CATEGORIAS[g.catKey].label}
+                        </span>
+                        <span className="text-xs text-cinza-600 tabular-nums">
+                          {g.itens.length}
+                        </span>
+                      </div>
+                      <ul className="space-y-2">
+                        {g.itens.map((atividade) => {
+                          const feito = !!feitos[atividade.id];
                   const quandoTxt = formatarQuando(feitos[atividade.id]);
                   const busca =
                     atividade.local ??
@@ -609,10 +644,13 @@ export default function Home() {
                           </a>
                         </div>
                       )}
-                    </li>
-                  );
-                })}
-              </ul>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  ))}
+              </div>
             )}
           </section>
         ))}
