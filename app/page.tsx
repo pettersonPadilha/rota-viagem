@@ -1,7 +1,36 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { rotaInicial, CATEGORIAS, type Atividade } from "./data";
+import ParabensModal from "./parabens-modal";
+
+async function dispararConfete() {
+  const confetti = (await import("canvas-confetti")).default;
+  const cores = ["#a855f7", "#c084fc", "#9333ea", "#e9d5ff", "#ffffff"];
+  confetti({ particleCount: 130, spread: 75, origin: { y: 0.6 }, colors: cores });
+  setTimeout(
+    () =>
+      confetti({
+        particleCount: 70,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0, y: 0.65 },
+        colors: cores,
+      }),
+    200
+  );
+  setTimeout(
+    () =>
+      confetti({
+        particleCount: 70,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1, y: 0.65 },
+        colors: cores,
+      }),
+    200
+  );
+}
 
 const STORAGE_KEY = "rota-viagem-v1";
 
@@ -25,6 +54,10 @@ export default function Home() {
   const [adicionados, setAdicionados] = useState<ItemAdicionado[]>([]);
   const [carregado, setCarregado] = useState(false);
   const [menuId, setMenuId] = useState<string | null>(null);
+  const [anelPct, setAnelPct] = useState(0); // valor animado do anel
+  const [showParabens, setShowParabens] = useState(false);
+  const jaCelebrou = useRef(false);
+  const celebracaoIniciada = useRef(false);
 
   // A lista é SEMPRE montada a partir do código (rotaInicial), removendo os
   // excluídos e acrescentando os que você adicionou. No navegador guardamos
@@ -139,10 +172,34 @@ export default function Home() {
   // fração preenchida da trilha (do 1º ao último marco: 25%→100%)
   const trilha = Math.min(Math.max((progresso - 25) / 75, 0), 1);
 
-  // Geometria do anel de progresso
+  // Geometria do anel de progresso (anima do 0 até o valor ao aparecer/mudar)
   const raio = 34;
   const circunferencia = 2 * Math.PI * raio;
-  const preenchido = circunferencia * (1 - progresso / 100);
+  const preenchido = circunferencia * (1 - anelPct / 100);
+
+  // anima o anel preenchendo do 0 até o progresso (ao carregar e ao mudar)
+  useEffect(() => {
+    if (!carregado) return;
+    const t = setTimeout(() => setAnelPct(progresso), 150);
+    return () => clearTimeout(t);
+  }, [carregado, progresso]);
+
+  // comemora ao completar 100% (não dispara se já estava 100% ao abrir)
+  useEffect(() => {
+    if (!carregado) return;
+    if (!celebracaoIniciada.current) {
+      celebracaoIniciada.current = true;
+      jaCelebrou.current = progresso === 100;
+      return;
+    }
+    if (progresso === 100 && !jaCelebrou.current) {
+      jaCelebrou.current = true;
+      setShowParabens(true);
+      dispararConfete();
+    } else if (progresso < 100) {
+      jaCelebrou.current = false;
+    }
+  }, [carregado, progresso]);
 
   if (!carregado) {
     return (
@@ -151,7 +208,7 @@ export default function Home() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-roxo-400/80">
             Dias 13–16 · Mato Grosso
           </p>
-          <h1 className="font-display mt-1.5 bg-gradient-to-br from-roxo-100 via-roxo-200 to-roxo-400 bg-clip-text text-4xl font-extrabold leading-[1.05] text-transparent sm:text-5xl">
+          <h1 className="font-display mt-1 bg-gradient-to-br from-roxo-100 via-roxo-200 to-roxo-400 bg-clip-text text-5xl font-bold leading-[1.05] text-transparent sm:text-6xl">
             Rota da Viagem
           </h1>
           <p className="mt-2 text-sm text-cinza-400">
@@ -241,8 +298,8 @@ export default function Home() {
                   r={raio}
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="8"
-                  className="text-cinza-700"
+                  strokeWidth="5"
+                  className="text-[#231a31]"
                 />
                 <circle
                   cx="44"
@@ -250,16 +307,22 @@ export default function Home() {
                   r={raio}
                   fill="none"
                   stroke="url(#grad)"
-                  strokeWidth="8"
+                  strokeWidth="5"
                   strokeLinecap="round"
                   strokeDasharray={circunferencia}
                   strokeDashoffset={preenchido}
-                  className="transition-all duration-500 ease-out"
+                  className="[transition:stroke-dashoffset_1.1s_cubic-bezier(0.22,1,0.36,1)]"
+                  style={{
+                    filter:
+                      anelPct > 0
+                        ? "drop-shadow(0 0 5px rgba(147,51,234,0.55))"
+                        : "none",
+                  }}
                 />
                 <defs>
                   <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#c084fc" />
-                    <stop offset="100%" stopColor="#9333ea" />
+                    <stop offset="0%" stopColor="#9333ea" />
+                    <stop offset="100%" stopColor="#6b21a8" />
                   </linearGradient>
                 </defs>
               </svg>
@@ -415,10 +478,10 @@ export default function Home() {
                         <span className="text-lg leading-none">
                           {CATEGORIAS[g.catKey].emoji}
                         </span>
-                        <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-cinza-400">
+                        <span className="text-[11px] font-semibold uppercase leading-none tracking-[0.15em] text-cinza-400">
                           {CATEGORIAS[g.catKey].label}
                         </span>
-                        <span className="text-xs text-cinza-600 tabular-nums">
+                        <span className="text-[11px] font-semibold leading-none text-cinza-600 tabular-nums">
                           {g.itens.length}
                         </span>
                       </div>
@@ -465,7 +528,7 @@ export default function Home() {
                           <span
                             className={`flex h-6 w-6 items-center justify-center rounded-md border transition-colors ${
                               feito
-                                ? "border-roxo-400 bg-gradient-to-br from-roxo-500 to-roxo-600 text-white shadow-sm shadow-roxo-500/40"
+                                ? "border-roxo-500/50 bg-gradient-to-br from-[#2a1245] to-[#120a1f] text-roxo-300 shadow-sm shadow-black/40"
                                 : "border-cinza-600 bg-transparent group-hover/check:border-roxo-400 group-hover/check:bg-roxo-500/10"
                             }`}
                           >
@@ -643,6 +706,9 @@ export default function Home() {
         ))}
       </div>
 
+      {showParabens && (
+        <ParabensModal onClose={() => setShowParabens(false)} />
+      )}
     </main>
   );
 }

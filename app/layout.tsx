@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque } from "next/font/google";
+import { Caveat } from "next/font/google";
 import "./globals.css";
 import ServiceWorkerRegister from "./sw-register";
 import PullToRefresh from "./pull-to-refresh";
 
-const display = Bricolage_Grotesque({
+const display = Caveat({
   subsets: ["latin"],
-  weight: ["600", "700", "800"],
+  weight: ["500", "600", "700"],
   variable: "--font-display",
   display: "swap",
 });
